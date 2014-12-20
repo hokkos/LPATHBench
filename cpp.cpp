@@ -19,13 +19,11 @@ struct node {
 
 vector<node> readPlaces(){
   ifstream text("agraph");
-  string numNodesText;
-  text >> numNodesText;
-  int numNodes = stoi(numNodesText);
+  int numNodes; text >> numNodes;
   vector<node> nodes(numNodes);
-  string nodeS, neighbourS, costS;
-  while (text >> nodeS >> neighbourS >> costS){
-    nodes[stoi(nodeS)].neighbours.push_back(route{stoi(neighbourS), stoi(costS)});
+  int node, neighbour, cost;
+  while (text >> node >> neighbour >> cost){
+    nodes[node].neighbours.push_back(route{neighbour, cost});
   }
   return nodes;
 }
@@ -70,6 +68,6 @@ int main(int argc, char** argv){
   auto start = high_resolution_clock::now();
   int len = getLongestPath(nodes);
   auto end = high_resolution_clock::now();
-  auto duration = 0.000001 * duration_cast<microseconds>(end - start).count();
+  auto duration = (int)(0.001 * duration_cast<microseconds>(end - start).count());
   cout << len << " LANGUAGE C++ " << duration << std::endl;
 }

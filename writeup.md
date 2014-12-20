@@ -8,25 +8,26 @@ The following table contains the most useful results for the benchmark, comparin
 
 Note that the algorithm finds the length of the longest path in the graph, but doesn't actually find all the steps in that path; this is purely laziness on my part, as the latter requires more effort to write. In my defence, most results for "longest path algorithm" on Google also seem to only give the length of the longest path, not the path itself.
 
+**Note**: *It's 2am in my timezone (AEST) at the time of writing this edit so I'm off to bed now; any further pull requests will have to wait around 8 hours to be pulled*
+
 Just to clarify: I'm not comparing ARM and x86, I'm comparing language implementations on two common ARM and x86 platforms.
 
 **Results:**
 
 | Language | % x86 |
 | :------- | ----: |
-| C++ | 77.0698 |
-| LuaJit | 56.7322 |
-| D | 55.9021 |
-| FSharp | 46.2154 |
-| CSharp | 44.4748 |
-| GCCGo | 43.7191 |
-| NIM | 41.7439 |
-| Racket | 40.2854 |
-| Go | 39.7777 |
-| Ocaml | 32.214 |
-| Lisp | 23.6989 |
-| OracleJava | 19.3809 |
-| Java | 17.6471 |
+| C++ | 73.8509 |
+| LuaJit | 63.4567 |
+| CSharp | 62.638 |
+| GCCGo | 49.7576 |
+| FSharp | 45.9485 |
+| NIM | 43.4246 |
+| Go | 41.8213 |
+| Racket | 40.823 |
+| Ocaml | 36.0282 |
+| Lisp | 25.8946 |
+| OracleJava | 18.2205 |
+| Java | 17.9184 |
 
 
 The % x86 column refers to the speed of a language on ARM as a percentage of its speed on x86. So if an implementation's % x86 is 50%, then it runs at half the speed on ARM as it does on x86.
@@ -34,6 +35,8 @@ The % x86 column refers to the speed of a language on ARM as a percentage of its
 F#, Haskell, Rust and Dart send their apologies. F# didn't have an Arch Linux package for ARM, and when I built it myself the compiler and runtime segfaulted upon use. Haskell requires LLVM for codegen on ARM, but it doesn't package it, and doesn't properly support the version of LLVM I'm using, so couldn't compile the vector library (note that this problem may go away in future with plans to package a specific LLVM version with GHC). The Rust package on ARM is only 0.11, and I was too lazy to backport my 0.12 implementation (0.12 is so much prettier; vec[i] instead of vec.get(i), for instance). Dart seemed to have an incredibly convoluted build processes, as it requires the Chromium dependencies, and I ain't got time for that. Their x86 performance results can be seen further below.
 
 An aside: D only barely works. While sudo pacman -S ldc went down without a hitch, when I compiled and ran it the output was garbage unicode characters. Replacing D's writeln with standard C printf fixed this.
+
+**Edit:** Okay, I updated the ldc D compiler earlier today (incidentally, as part of upgrading my system with pacman -Syu), and now it doesn't compile at all. It was previously compiling, and ran at around 90% the speed of C++ on ARM.
 
 The OpenJDK's performance on ARM shows how much performance depends on the implementation, not just the language. If you're a low-level person and looking for something useful to which to contribute, consider implementing a JIT compiler for OpenJDK on ARM. Even if it was only half as good as the Oracle one, you'd still be able to put on your resume that you made the ARM JVM five times faster.
 
@@ -93,41 +96,40 @@ Anyway, here's the numbers you probably came here for. The x86-64 device is an I
 
 | Language | Runtime (ms) |
 | :------- | -----------: |
-| C++ | 2263 |
-| D | 3270 |
-| NIM | 4748 |
-| GCCGo | 6464 |
-| Go | 7557 |
-| Ocaml | 9291 |
-| CSharp | 9511 |
-| LuaJit | 10331 |
-| OracleJava | 13503 |
-| Java | 14297 |
-| FSharp | 18113 |
-| Racket | 31890 |
-| Lisp | 38044 |
+| C++ | 2265 |
+| NIM | 4783 |
+| CSharp | 5436 |
+| GCCGo | 6395 |
+| Go | 7544 |
+| Ocaml | 9215 |
+| LuaJit | 10322 |
+| Java | 14287 |
+| OracleJava | 14352 |
+| FSharp | 18129 |
+| Racket | 32805 |
+| Lisp | 38147 |
 
 
 **x86-64**
 
 | Language | Runtime (ms) |
 | :------- | -----------: |
-| C++ | 1744 |
-| D | 1828 |
-| NIM | 1982 |
-| Rust | 2217 |
-| Java | 2523 |
-| OracleJava | 2617 |
-| GCCGo | 2826 |
-| Ocaml | 2993 |
-| Go | 3006 |
-| CSharp | 4230 |
-| Haskell | 4635 |
-| LuaJit | 5861 |
-| FSharp | 8371 |
-| Dart | 8763 |
-| Lisp | 9016 |
-| Racket | 12847 |
+| C++ | 1673 |
+| D | 1991 |
+| NIM | 2077 |
+| Rust | 2259 |
+| Java | 2560 |
+| OracleJava | 2615 |
+| Go | 3155 |
+| GCCGo | 3182 |
+| Ocaml | 3320 |
+| CSharp | 3405 |
+| Haskell | 4816 |
+| LuaJit | 6550 |
+| FSharp | 8330 |
+| Dart | 9476 |
+| Lisp | 9878 |
+| Racket | 13392 |
 
 
 Feel free to submit improvements to the implementations! Just one rule: the graph must be read in at runtime; reading it in and generating the result at compile-time is not allowed.
@@ -234,6 +236,8 @@ Then, when I attempted to append a new neighbour to one of the nodes on the list
 
 *C Sharp*
 I learned something useful: iterators are not cost-free. Someone changed the iterator in the inner loop to a for loop, and the performance jumped by 30%!
+
+And wow, the use of unsafe and stuff like `[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]` really sped it up. Faster than Java on ARM and almost faster than Go and OCaml on x86!
 
 *Racket*
 
