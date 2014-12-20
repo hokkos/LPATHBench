@@ -2,29 +2,31 @@
 
 In this benchmark I thought it would be interesting to explore a less common pathfinding algorithm. Imagine you've just been "invited" to visit your in-laws (if you don't have inlaws, imagine you're driving a married friend), and want to find the longest possible route to the in-laws' house, in order to minimise the time spent with them. Now, you don't want your spouse (or your friend's spouse) to know you're stalling, so you can't visit the same place twice, can't just spend infinity hours driving in a circle. How would you find this longest path?
 
-One way is to create a graph with the nodes representing different intersections and the connections between these nodes representing the distances of the roads between these intersections. One can then solve it with the relatively simple approach of iterating through all possible routes to find the longest. You may be thinking this sounds incredibly slow, and it is, something like O(n!). Unfortunately however there are no known "fast" algorithms that can find this path; the problem is considered NP complete, meaning if you can solve it in O(n^b) time, where b is a constant, then you get a [million dollar prize](http://en.wikipedia.org/wiki/Millennium_Prize_Problems#P_versus_NP).
+One way is to create a graph with the nodes representing different intersections and the connections between these nodes representing the distances of the roads between these intersections. One can then solve it with the relatively simple approach of iterating through all possible routes to find the longest. You may be thinking this sounds incredibly slow, and it is, something like O(n!). Unfortunately however there are no known "fast" algorithms that can find this path; the problem has been proven to be NP complete, meaning if you can solve it in O(n^b) time, where b is a constant, then you get a [million dollar prize](http://en.wikipedia.org/wiki/Millennium_Prize_Problems#P_versus_NP).
 
 The following table contains the most useful results for the benchmark, comparing each language against itself on ARMv7 and x86-64. 32 bit integers are used where possible, rather than machine-sized ones, to ensure both implementations use the same sized datatypes. OCaml is an exception, as non-machine-sized ints are boxed, so machine-sized ints are faster.
 
 Note that the algorithm finds the length of the longest path in the graph, but doesn't actually find all the steps in that path; this is purely laziness on my part, as the latter requires more effort to write. In my defence, most results for "longest path algorithm" on Google also seem to only give the length of the longest path, not the path itself.
 
+Just to clarify: I'm not comparing ARM and x86, I'm comparing language implementations on two common ARM and x86 platforms.
+
 **Results:**
 
 | Language | % x86 |
 | :------- | ----: |
-| C++ | 61.3459 |
-| D | 58.0447 |
-| NIM | 53.9471 |
-| LuaJit | 51.6425 |
-| CSharp | 48.4341 |
-| GCCGo | 47.677 |
-| FSharp | 45.5306 |
-| Go | 39.8048 |
-| OracleJava | 38.3674 |
-| Racket | 38.0156 |
-| Ocaml | 34.0433 |
-| Lisp | 22.5941 |
-| Java | 4.78899 |
+| C++ | 77.0698 |
+| LuaJit | 56.7322 |
+| D | 55.9021 |
+| FSharp | 46.2154 |
+| CSharp | 44.4748 |
+| GCCGo | 43.7191 |
+| NIM | 41.7439 |
+| Racket | 40.2854 |
+| Go | 39.7777 |
+| Ocaml | 32.214 |
+| Lisp | 23.6989 |
+| OracleJava | 19.3809 |
+| Java | 17.6471 |
 
 
 The % x86 column refers to the speed of a language on ARM as a percentage of its speed on x86. So if an implementation's % x86 is 50%, then it runs at half the speed on ARM as it does on x86.
@@ -34,6 +36,8 @@ F#, Haskell, Rust and Dart send their apologies. F# didn't have an Arch Linux pa
 An aside: D only barely works. While sudo pacman -S ldc went down without a hitch, when I compiled and ran it the output was garbage unicode characters. Replacing D's writeln with standard C printf fixed this.
 
 The OpenJDK's performance on ARM shows how much performance depends on the implementation, not just the language. If you're a low-level person and looking for something useful to which to contribute, consider implementing a JIT compiler for OpenJDK on ARM. Even if it was only half as good as the Oracle one, you'd still be able to put on your resume that you made the ARM JVM five times faster.
+
+**Edit**: *Okay, someone changed the Java implementation to use arrays for the data, instead of classes, effectively unboxing it, and now the OpenJDK implementation is no longer an order of magnitude slower than the Oracle JVM on ARM. Interesting.*
 
 Weird thing: when I made a symlink 'oraclejava' which linked to my local Oracle jvm `java` executable, for some reason it created an 'oraclejava' in /sbin, which pointed to the Openjdk java executable instead! Hence why the benchmark explicitly runs `/usr/bin/oraclejava`.
 
@@ -89,41 +93,41 @@ Anyway, here's the numbers you probably came here for. The x86-64 device is an I
 
 | Language | Runtime (ms) |
 | :------- | -----------: |
-| C++ | 3195 |
-| D | 3263 |
-| NIM | 4877 |
-| GCCGo | 6414 |
-| Go | 7582 |
-| Ocaml | 8921 |
-| CSharp | 9324 |
-| LuaJit | 10563 |
-| OracleJava | 13561 |
-| FSharp | 18179 |
-| Racket | 37724 |
-| Lisp | 40630 |
-| Java | 125371 |
+| C++ | 2263 |
+| D | 3270 |
+| NIM | 4748 |
+| GCCGo | 6464 |
+| Go | 7557 |
+| Ocaml | 9291 |
+| CSharp | 9511 |
+| LuaJit | 10331 |
+| OracleJava | 13503 |
+| Java | 14297 |
+| FSharp | 18113 |
+| Racket | 31890 |
+| Lisp | 38044 |
 
 
 **x86-64**
 
 | Language | Runtime (ms) |
 | :------- | -----------: |
-| D | 1894 |
-| C++ | 1960 |
-| Rust | 2306 |
-| NIM | 2631 |
-| Go | 3018 |
-| Ocaml | 3037 |
-| GCCGo | 3058 |
-| CSharp | 4516 |
-| Haskell | 4764 |
-| OracleJava | 5203 |
-| LuaJit | 5455 |
-| Java | 6004 |
-| FSharp | 8277 |
-| Dart | 8564 |
-| Lisp | 9180 |
-| Racket | 14341 |
+| C++ | 1744 |
+| D | 1828 |
+| NIM | 1982 |
+| Rust | 2217 |
+| Java | 2523 |
+| OracleJava | 2617 |
+| GCCGo | 2826 |
+| Ocaml | 2993 |
+| Go | 3006 |
+| CSharp | 4230 |
+| Haskell | 4635 |
+| LuaJit | 5861 |
+| FSharp | 8371 |
+| Dart | 8763 |
+| Lisp | 9016 |
+| Racket | 12847 |
 
 
 Feel free to submit improvements to the implementations! Just one rule: the graph must be read in at runtime; reading it in and generating the result at compile-time is not allowed.
@@ -133,7 +137,7 @@ Feel free to submit improvements to the implementations! Just one rule: the grap
 
 *Lua*
 
-Damn is it fast; I wouldn't have thought a dynamic language would run almost faster than Java and C#. Mike Pall: the Einstein of just-in-time-compiler-writing.
+Damn is it fast; I wouldn't have thought a dynamic language would run almost faster than Haskell and faster than F#. Mike Pall: the Einstein of just-in-time-compiler-writing.
 
 *Go*
 
@@ -210,9 +214,11 @@ The C++ implementation was pleasant to write; I think people give modern C++ far
 
 Also, input streams are hilarious. I wonder people unfamiliar with C++ would think of the following while loop:
 
+**Edit:** someone updated it to use proper fixed-size bitsets, and wow is it fast!
+
 ```c
   while (text >> nodeS >> neighbourS >> costS){
-    nodes[stoi(nodeS)].neighbours.push_back(route{stoi(neighbourS), stoi(costS)});
+    nodes[nodeS].neighbours.push_back(route{neighbourS, costS});
   }
 ```
 
@@ -270,6 +276,8 @@ It was pretty simple to translate the OCaml implementation into F#, apart from a
 *Java*
 
 Really not much to say here. Verbose, but fairly simple to write, and reasonably fast, although not comparable to the compiled languages.
+
+And wow: someone update it to use arrays instead of classes for nodes (effectively unboxing them), and it's incredibly fast. I'm really looking forward to unboxed classes in Java 9 (or 10 :/).
 
 *Haskell*
 
@@ -347,7 +355,7 @@ I didn't write the Nim implementation, so can't comment on it, but from looking 
 
 * D and Nimrod both work on ARM and can generate fast code, but the D stdlib is buggy (have to use C printf instead of D writeln)
 * The OpenJDK's performance on ARM is a steaming pile of crap
-* C++ specialises std::vector<bool> to a bitvector by default, which can hurt performance
+* C++ specialises std::vector<bool> to a bitvector by default, which can hurt performance. Using a std::bitset properly is however much faster, as it can be inlined.
 * Haskell can be faster than Java, thanks to unboxing
 * If you wanna use Haskell on ARM, you must be willing to build whatever version of LLVM it was built with
 * Luajit is friggen fast!
